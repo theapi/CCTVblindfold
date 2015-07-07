@@ -37,6 +37,7 @@ void loop()
     
     if (count == QUARTER_TURN) {
       // stop
+      PORTC = 0;
       active = 0;
     }
   }
