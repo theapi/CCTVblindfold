@@ -1,12 +1,17 @@
 
+#define PIN_DIRECTION 2
+
 void setup() 
 { 
   DDRC = 0xFF; // set all to output
+  
+  pinMode(PIN_DIRECTION, INPUT_PULLUP);
 } 
 
 void loop()
 {
-  step(1);
+  byte dir = digitalRead(PIN_DIRECTION);
+  step(dir);
   delay(1);
 }
 
