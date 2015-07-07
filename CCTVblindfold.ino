@@ -1,17 +1,46 @@
 
 #define PIN_DIRECTION 2
+#define QUARTER_TURN 1024
 
 void setup() 
 { 
   DDRC = 0xFF; // set all to output
   
   pinMode(PIN_DIRECTION, INPUT_PULLUP);
+  
+  //Serial.begin(9600);
 } 
 
 void loop()
 {
+  static byte active = 1;
+  static int count = 0;
+  static byte current_dir = 0;
+  
   byte dir = digitalRead(PIN_DIRECTION);
-  step(dir);
+  
+  
+  if (current_dir != dir) {
+    current_dir = dir;
+    count = 0; 
+    active = 1;
+  }
+  
+  if (active) {
+    
+    
+    step(dir);
+    
+    //Serial.print("steps:" );
+    //Serial.println(count);
+    count++;
+    
+    if (count == QUARTER_TURN) {
+      // stop
+      active = 0;
+    }
+  }
+  
   delay(1);
 }
 
