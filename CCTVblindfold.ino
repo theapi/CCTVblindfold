@@ -26,6 +26,8 @@ void setup()
 void stateRun() 
 {
   static int step_count = 0;
+  unsigned long now = millis();
+  static unsigned long step_last = 0;
   
   switch (blindfold_state) {
     case B_OPEN: 
@@ -41,18 +43,19 @@ void stateRun()
       
     case B_OPENING:
       // Move to the open position
-      
-      
       if (step_count >= QUARTER_TURN) {
         // stop
         PORTC = 0;
         blindfold_state = B_OPEN;
       }
       else {
-        step(1);
-        step_count++;
+        // Must give time for the motor to move
+        if (now - step_last > 1) {
+          step_last = now;
+          step(1);
+          step_count++;
+        }
       }
-      delay(1); // Must give time for the motor to move
       break;
     
     case B_CLOSED:
@@ -72,10 +75,13 @@ void stateRun()
         PORTC = 0;
         blindfold_state = B_CLOSED;
       } else {
-        step(0);
-        step_count++; 
+        // Must give time for the motor to move
+        if (now - step_last > 1) {
+          step_last = now;
+          step(0);
+          step_count++;
+        } 
       }
-      delay(1); // Must give time for the motor to move
       break;
     
     case B_CALIBRATING:
