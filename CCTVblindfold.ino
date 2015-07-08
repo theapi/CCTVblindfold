@@ -1,5 +1,9 @@
 
 #define PIN_TOGGLE 2 // Used to switch between open & closed
+#define PIN_IR_LED 3 // the led of the reflective optical sensor - TCRT5000
+#define PIN_IR_TRANSISTOR 4 // the phototransistor of the TCRT5000
+#define PIN_DEBUG 13
+
 #define QUARTER_TURN 1024 // How many steps to to turn 90 degrees
 
 // The timer states.
@@ -19,6 +23,12 @@ void setup()
   DDRC = 0xFF; // set all to output
   
   pinMode(PIN_TOGGLE, INPUT_PULLUP);
+  pinMode(PIN_IR_TRANSISTOR, INPUT_PULLUP);
+  pinMode(PIN_IR_LED, OUTPUT);
+  pinMode(PIN_DEBUG, OUTPUT);
+  
+  digitalWrite(PIN_DEBUG, LOW); // off
+  digitalWrite(PIN_IR_LED, LOW); // off
   
   //Serial.begin(9600);
 } 
@@ -85,8 +95,24 @@ void stateRun()
       break;
     
     case B_CALIBRATING:
-      // for now pretend calibrated and set to closed
-      blindfold_state = B_CLOSED;
+      // turn on the ir reflector
+      digitalWrite(PIN_IR_LED, HIGH);
+    
+      // move to find the ir response.
+      if (now - step_last > 2) {
+        step_last = now;
+        if (digitalRead(PIN_IR_TRANSISTOR)) {
+          digitalWrite(PIN_DEBUG, HIGH);
+          step(1);
+        } else {
+          // stop
+          PORTC = 0;
+          blindfold_state = B_OPEN;
+          // turn off the ir reflector
+          digitalWrite(PIN_IR_LED, LOW);
+          digitalWrite(PIN_DEBUG, LOW); // Reflection seen
+        }
+      }
       break;
     
     case  B_TRIM_CW:
