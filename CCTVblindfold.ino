@@ -1,9 +1,13 @@
 
+// http://playground.arduino.cc/Main/CapacitiveSensor
+#include <CapacitiveSensor.h>
+
+
 #define PIN_POWER_CAM     2 // mosfet driver to switch power to the camera
 #define PIN_IR_LED        3 // the led of the reflective optical sensor - TCRT5000
 #define PIN_IR_TRANSISTOR 4 // the phototransistor of the TCRT5000
-#define PIN_TOGGLE        5 // Used to switch between open & closed
-#define PIN_TOGGLE_CMP    6 // the compare for capactive touch
+#define PIN_TOGGLE_SEND   5 // Used to switch between open & closed (capactive touch)
+#define PIN_TOGGLE_REC    6 // the receive pin for capactive touch
 #define PIN_DEBUG         13
 
 #define QUARTER_TURN 1024 // How many steps to to turn 90 degrees
@@ -20,11 +24,13 @@ enum blindfold_states {
 };
 blindfold_states blindfold_state = B_CALIBRATING;
 
+CapacitiveSensor capSensor = CapacitiveSensor(PIN_TOGGLE_SEND, PIN_TOGGLE_REC);
+
+
 void setup() 
 { 
   DDRC = 0xFF; // set all to output
   
-  pinMode(PIN_TOGGLE, INPUT_PULLUP);
   pinMode(PIN_IR_TRANSISTOR, INPUT_PULLUP);
   
   pinMode(PIN_POWER_CAM, OUTPUT);
@@ -86,8 +92,6 @@ void stateRun()
     
     case B_CLOSING:
       // Move to the closed position
-      
-      
       if (step_count >= QUARTER_TURN) {
         // stop
         PORTC = 0;
@@ -145,8 +149,15 @@ void stateRun()
  */
 byte toggled() 
 {
-  // Switch is pulled high so active low.
-  return !digitalRead(PIN_TOGGLE);
+  // threshold for toggling the switch
+  static int threshold = 1000;
+
+  long sensorValue = capSensor.capacitiveSensor(30);
+  if (sensorValue > threshold) {
+    return 1;
+  }
+  
+  return 0;
 }
 
 void loop()
