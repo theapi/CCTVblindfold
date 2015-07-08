@@ -1,8 +1,10 @@
 
-#define PIN_TOGGLE 2 // Used to switch between open & closed
-#define PIN_IR_LED 3 // the led of the reflective optical sensor - TCRT5000
+#define PIN_POWER_CAM     2 // mosfet driver to switch power to the camera
+#define PIN_IR_LED        3 // the led of the reflective optical sensor - TCRT5000
 #define PIN_IR_TRANSISTOR 4 // the phototransistor of the TCRT5000
-#define PIN_DEBUG 13
+#define PIN_TOGGLE        5 // Used to switch between open & closed
+#define PIN_TOGGLE_CMP    6 // the compare for capactive touch
+#define PIN_DEBUG         13
 
 #define QUARTER_TURN 1024 // How many steps to to turn 90 degrees
 
@@ -24,9 +26,12 @@ void setup()
   
   pinMode(PIN_TOGGLE, INPUT_PULLUP);
   pinMode(PIN_IR_TRANSISTOR, INPUT_PULLUP);
+  
+  pinMode(PIN_POWER_CAM, OUTPUT);
   pinMode(PIN_IR_LED, OUTPUT);
   pinMode(PIN_DEBUG, OUTPUT);
   
+  digitalWrite(PIN_POWER_CAM, LOW); // on (npn driving p-channel mosfet)
   digitalWrite(PIN_DEBUG, LOW); // off
   digitalWrite(PIN_IR_LED, LOW); // off
   
@@ -56,6 +61,9 @@ void stateRun()
       if (step_count >= QUARTER_TURN) {
         // stop
         PORTC = 0;
+        // power up the camera
+        digitalWrite(PIN_POWER_CAM, LOW);
+        // set the new state
         blindfold_state = B_OPEN;
       }
       else {
@@ -83,6 +91,9 @@ void stateRun()
       if (step_count >= QUARTER_TURN) {
         // stop
         PORTC = 0;
+        // power down the camera
+        digitalWrite(PIN_POWER_CAM, HIGH);
+        // set the new state
         blindfold_state = B_CLOSED;
       } else {
         // Must give time for the motor to move
