@@ -91,12 +91,14 @@ void stateRun()
       break;
     
     case B_CLOSING:
+      // power down the camera
+      digitalWrite(PIN_POWER_CAM, HIGH);
+        
       // Move to the closed position
       if (step_count >= QUARTER_TURN) {
         // stop
         PORTC = 0;
-        // power down the camera
-        digitalWrite(PIN_POWER_CAM, HIGH);
+        
         // set the new state
         blindfold_state = B_CLOSED;
       } else {
